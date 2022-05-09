@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link href="/static/test.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="header">
+      <div>
+        <span id="totalNum">總共XX張</span>
+      </div>
+      <div class="HeaderRight">
+        <button id="selectBtn">選取</button>
+        <input
+          id="file"
+          type="file"
+          style="display: none"
+          data-target="file-uploader"
+          multiple
+        />
+        <button type="button" onclick="file.click()">新增</button>
+      </div>
+    </div>
+    <div class="content"></div>
+    <div class ='selectItems hidden'>
+        <span id="selectCount"></span>
+        <i class="export">export</i>
+        <i id ='trashCanBtn' class="trashcan">trashcan</i>
+    </div>
+    <div class="bottom">
+      <div class="nav">
+        <div class="nav-item active">
+          <i class="material-icons home-icon"> home </i>
+          <span class="nav-text">Home</span>
+        </div>
+        <div class="nav-item">
+          <i class="material-icons favorite-icon"> favorite </i>
+          <span class="nav-text">Likes</span>
+        </div>
+        <div class="nav-item">
+          <i class="material-icons search-icon"> search </i>
+          <span class="nav-text">Search</span>
+        </div>
+        <div class="nav-item">
+          <i class="material-icons person-icon"> person </i>
+          <span class="nav-text">Profile</span>
+        </div>
+      </div>
+    </div>
+    <script src="/static/test.js"></script>
+  </body>
+</html>
