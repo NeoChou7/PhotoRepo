@@ -29,12 +29,15 @@ var fullImgDiv = {}
 
 fileUploader.addEventListener("change", function (e) {
   let arys = e.target.files;
-  Array.from(e.target.files).forEach((name) => {
+  wsFileUpload(arys).then(function (data) {
+    console.log(data)
+    refresh()
+  })
+  // Promise.all(
+  //   Array.from(e.target.files).map(name => wsFileUpload(name))
+  // ).then(function (data) {
 
-    wsFileUpload(name);
-    // refresh()
-  });
-
+  // })
 });
 
 content.addEventListener('scroll', () => {
@@ -65,30 +68,7 @@ function init() {
   fullImgDiv = document.querySelector(".fullImg");
   fullImgDiv.style.display = 'none'
   //取得50張照片名稱
-  wsGetImages()
-    .then(function (jsonData) {
-      for (var i in jsonData) {
-        if (!jsonData.hasOwnProperty(i)) continue;
-        // album[jsonData[i]] = ''
-        album.push(jsonData[i])
-      }
-    })
-    .then(function () {
-      album = album.sort(function (a, b) {
-        return a - b;
-      })
-      Promise.all(
-        album.map(name => {
-          return generateImgContext(name)
-        })
-      ).then(function (datas) {
-        datas.map(obj => {
-          content.innerHTML += obj;
-        })
-        totalNum.innerHTML = `${getTotalCount()}張照片`;
-      });
-    });
-
+  initLoadImg()
 }
 //捲動需要
 function loadImg(fromName) {
@@ -121,56 +101,6 @@ function loadImg(fromName) {
       });
     });
 }
-// //新增需要
-// //兩種方式
-// //一。全部刷新，重新撈資料，縮圖流量少，程式碼簡單
-// //二。舊資料存下來，比較是否有新圖片，有則找地方insert，減少圖片傳輸數據
-// ////algorithm1
-// ////取得要刷新的範圍圖片
-// ////比較哪些圖是新增的
-// newAlbum [7,6,5,5,4,3,3,2,1]
-// album [5,4,3,3,2,1]
-// if newAlbum[i 0]>album[j 0]
-//   needDownLoad.push(newAlbum[i])
-//   location.push(album[j])
-//   i++
-//   continue
-//   if newAlbum[i 0]=album[j 0]
-//   i++,j++
-//   continue
-// ////撈圖片資料回來
-// ////insert適當位置
-//  撈回來的圖片不知道要放在哪個位置
-//   排序的時候紀錄
-//   name=location[0]
-//   contentHtml=htmlStr[0]
-//   foreach location
-//     if(name != location ){
-//       抓querySelector(name)
-//       insert before innerHTML+= contentHtml
-//       name=location
-//       contentHtml=htmlStr
-//     }
-//     //抓querySelector (若遇到同時段照片此段會一直重複)
-//     contentHtml+=[抓回來的資料]
-
-//   做最後一次insert
-
-// ////algorithm2
-// ////取得要刷新的範圍圖片
-// ////比較哪些圖是新增的
-// newAlbum [7,6,5,5,4,3,3,2,1]
-// album [5,4,3,3,2,1]
-
-// if newAlbum[i 0]>album[j 0]
-//  newAlbum[0] 是新增
-//  撈資料，放到node
-//   可根據陣列指定位置
-//   可根據album檔名往前安插 album[j].before insert
-//   撈資料會遇到非同步問題（除非能卡住此段)
-// //////撈圖片資料回來
-// //////insert適當位置
-
 
 async function getRangeImgNames(oldestName) {
   if (oldestName === undefined) return []
@@ -188,10 +118,40 @@ async function getRangeImgNames(oldestName) {
   } while (lastName > oldestName);
   return newAlbum
 }
+
+function initLoadImg() {
+  wsGetImages()
+    .then(function (jsonData) {
+      for (var i in jsonData) {
+        if (!jsonData.hasOwnProperty(i)) continue;
+        // album[jsonData[i]] = ''
+        album.push(jsonData[i])
+      }
+    })
+    .then(function () {
+      album = album.sort(function (a, b) {
+        return a - b;
+      })
+      Promise.all(
+        album.map(name => {
+          return generateImgContext(name)
+        })
+      ).then(function (datas) {
+        datas.map(obj => {
+          content.innerHTML += obj;
+        })
+        totalNum.innerHTML = `${getTotalCount()}張照片`;
+      });
+    });
+}
 //startName 第一張
 function refresh() {
+  if (album.length === 0) {
+    initLoadImg()
+    return
+  }
   //取出最畫面上舊的一張
-  let oldestName = album.slice(-1)[0];
+  let oldestName = album.slice(-1)[0] || '9999999999999999';
   getRangeImgNames(oldestName).then(function (newAlbum) {
     // newAlbum 是否需要重新排序
     newAlbum = newAlbum.sort(function (a, b) {
@@ -200,8 +160,7 @@ function refresh() {
     // 比較哪些圖是新增的
     var needDownLoad = []
     var insertLocation = []
-    // newAlbum [7,6,5,5,4,3,3,2,1,1]
-    // album [5,4,3,3,2,1]
+
     var i = 0
     var j = 0
     while (i < newAlbum.length) {
@@ -225,16 +184,8 @@ function refresh() {
         continue
       }
     }
-
     console.log(newAlbum)
     console.log(album)
-
-    // album = album.sort(function (a, b) {
-    //   return a - b;
-    // })
-    // needDownLoad = needDownLoad.sort(function (a, b) {
-    //   return a - b;
-    // })
 
     if (needDownLoad.length == 0) return;
 
@@ -457,16 +408,17 @@ function arrayBufferToBase64(buffer) {
   return window.btoa(binary);
 }
 
-function wsFileUpload(file) {
+function wsFileUpload(files) {
   var data = new FormData();
-  data.append("files", file);
+  Array.from(files).forEach(name => data.append('files', name))
+  // data.append("files", file);
   const uploadPath = serverHostPath + "/upload";
-  fetch(uploadPath, {
+  return fetch(uploadPath, {
     method: "POST",
-    body: data,
-  }).then(function (data) {
-    if (data.ok) {}
-    refresh()
+    body: data
+  }).then(function (response) {
+    console.log(response.json())
+    return response.json();
   });
 }
 
@@ -484,7 +436,7 @@ function htmlToElement(html) {
   var template = document.createElement('template');
   html = html.trim(); // Never return a text node of whitespace as the result
   template.innerHTML = html;
-  console.log(template.content)
+  // console.log(template.content)
   return template.content.firstChild;
 }
 

@@ -79,8 +79,15 @@ html,body {
   backdrop-filter: blur(10px);
 }
 .HeaderRight {
-  float: right;
-  right: 0px;
+  position: absolute; 
+  right: 5px;
+  height:100%
+}
+.add{
+  position: relative;
+  /* line-height: inherit; */
+  top:5px;
+  /* transform: translateY(-50%);  */
 }
 #totalNum {
   position: absolute;
@@ -144,15 +151,17 @@ html,body {
 }
 .export{
   position: absolute;
-  width:calc(3rem/2);
-  height:calc(3rem/2);
+  /* width:calc(3rem/2); */
+  /* height:calc(3rem/2); */
+  line-height: inherit;
   /* top:calc(3rem/4); */
   left:calc(3rem/4);
 }
 .trashcan{
   position: absolute;
-  width:calc(3rem/2);
-  height:calc(3rem/2);
+  /* width:calc(3rem/2);
+  height:calc(3rem/2); */
+  line-height: inherit;
   /* top:calc(3rem/4); */
   right:calc(3rem/4);
 }
